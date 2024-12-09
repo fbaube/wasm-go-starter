@@ -11,7 +11,8 @@ but it would be more laborious.
 ## Prerequisites
 
 - Install `go`, `rust`, and `cargo`
-- [Install `wasmtime`](https://docs.wasmtime.dev/cli-install.html) 
+- [Install `wasmtime`](https://docs.wasmtime.dev/cli-install.html),
+  the Bytecode Alliance WebAssembly runtime 
   - *cargo:* `cargo install wasmtime-cli`
   - *macOS:*  `brew install wasmtime`
 - [Install `wash`](https://wasmcloud.com/docs/installation),
@@ -59,6 +60,15 @@ will say hi and echo back the HTTP request in JSON.
 You may customise the message by adding a `name`query parameter:
 
 [`http://127.0.0.1:8000?name=kilroy`](http://127.0.0.1:8000?name=kilroy)`
+
+## Tinkering
+
+Feel free to modify `main.go` to see what you can make it do.
+Every time you run `wash dev`, the `gen/` subdirectory is wiped
+clean and repopulated.
+
+Modifying any other file may deeply break things. Be prepared
+to roll back modifications. 
 
 <br/> 
 
