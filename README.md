@@ -1,8 +1,9 @@
 # Gopher starter kit for CLI WebAssembly 
 
-Build an HTTP server and run it in `wasmtime`.
+Build an HTTP server written in Go, compile
+it to WebAssembly, and run it in `wasmtime`.
 
-This uses some handy free tools from
+These instructions use some handy free tools from
 [wasmCloud](https://wasmcloud.com).
 The same things can be done using only tools from
 [Bytecode Alliance](https://bytecodealliance.org),
@@ -31,10 +32,14 @@ but it would be more laborious.
 `rust`errors, and you installed `rust` from Homebrew, you
 may need to uninstall it and replace it with `rustup`.
 
-## Running it
+## Getting it
 
 - `git clone https://github.com/fbaube/wasm-go-starter.git`
+- `go mod tidy`
 - `cd wasm-go-starter`
+
+## Running it
+
 - `wash dev`
 
 The web server at [http://127.0.0.1:8000](http://127.0.0.1:8000)
@@ -63,12 +68,12 @@ You may customise the message by adding a `name`query parameter:
 
 ## Tinkering
 
-Feel free to modify `main.go` to see what you can make it do.
-Every time you run `wash dev`, the `gen/` subdirectory is wiped
-clean and repopulated.
+Modify `main.go` to see what you can make it do.
+Every time you run `wash dev`, the `gen/` and `build/`
+subdirectories are wiped clean and repopulated.
 
-Modifying any other file may deeply break things. Be prepared
-to roll back modifications. 
+Modifying any other file may deeply break things.
+Be prepared to roll back your modifications. 
 
 <br/> 
 
