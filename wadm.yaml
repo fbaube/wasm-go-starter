@@ -1,0 +1,49 @@
+apiVersion: core.oam.dev/v1beta1
+kind: Application
+metadata:
+  name: http-server-example # can be anything, but has to be globally unique
+  annotations:
+    version: 0.0.1 # Note: we cannot detect breaking changes
+    description: Entry-level kitchen sink demo
+spec:
+  components:
+    - name: http-component
+      type: component
+      properties:
+	# "image" can be (a) file ref, (b) Bindle image ref, or (c) OCI ref
+	# like ghcr.io/wasmcloud/components/http-hello-world-rust:0.1.0
+        image: file://./build/http_server_s.wasm
+	# id: someName # optional, unique, better to let wadm assign one
+      traits:
+        # Govern the spread/scheduling of the component
+        - type: spreadscaler
+          properties:
+            replicas: 1
+
+	# Add a capability provider (capability component) that enables
+	# HTTP access. Here the httpserver capability provider is taken
+	# from an official wasmCloud OCI artifact.
+    - name: httpserver
+      type: capability
+      properties:
+        image: ghcr.io/wasmcloud/http-server:0.23.2
+	# id: someName # optional, unique, better to let wadm assign one
+      traits:
+	# Link the httpserver to the component, and configure the 
+        # HTTP server to listen on port 8000 for incoming requests.
+        # Since the HTTP server calls component `http-component`, 
+        # we establish a unidirectional link from this `httpserver`
+	# provider (the "source") to the `http-component` component
+	# (the "target"), so the server can invoke the component to
+	# handle a request.
+        - type: link
+          properties:
+            target: http-component # this matches the Name of a component
+            namespace: wasi
+            package: http
+            interfaces: [incoming-handler]
+            source_config:
+              - name: default-http
+                properties:
+                  address: 127.0.0.1:8000 # or maybe 0.0.0.0:30000
+
