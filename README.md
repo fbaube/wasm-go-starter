@@ -1,7 +1,9 @@
 # Gopher starter kit for CLI WebAssembly 
 
-Build an HTTP server written in Go, compile
-it to WebAssembly, and run it in `wasmtime`.
+Deploy an HTTP server provided by 
+a *WebAssembly component*, and then
+use Go (in the form of `tinygo`) to
+process its incoming HTTP requests.
 
 These instructions use some handy free tools from
 [wasmCloud](https://wasmcloud.com).
@@ -11,7 +13,8 @@ but it would be more laborious.
 
 ## Prerequisites
 
-- Install `go`, `rust`, and `cargo`
+- Install `git`, `tinygo`, `rust`, `cargo`,
+  (*macOS*) [`brew`](https://brew.sh) 
 - [Install `wasmtime`](https://docs.wasmtime.dev/cli-install.html),
   the Bytecode Alliance WebAssembly runtime 
   - *cargo:* `cargo install wasmtime-cli`
@@ -35,8 +38,8 @@ may need to uninstall it and replace it with `rustup`.
 ## Getting it
 
 - `git clone https://github.com/fbaube/wasm-go-starter.git`
-- `go mod tidy`
 - `cd wasm-go-starter`
+- `go mod tidy # (can't hurt eh)`
 
 ## Running it
 
