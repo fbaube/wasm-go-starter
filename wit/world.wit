@@ -24,7 +24,8 @@ world example {
 	// (environment variables), and the CWD. It is described at
 	// https://pkg.go.dev/go.wasmcloud.dev/component/gen/wasi/cli/environment
 	import wasi:cli/environment@0.2.0;
-	// These imports are likely to change 
+	// The basics of these next two imports are described at
+	// https://github.com/WebAssembly/wasi-filesystem/blob/main/path-resolution.md
 	import wasi:filesystem/preopens@0.2.0;
 	import wasi:filesystem/types@0.2.0;
 }
