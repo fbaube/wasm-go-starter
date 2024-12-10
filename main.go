@@ -1,15 +1,15 @@
 //go:generate go run github.com/bytecodealliance/wasm-tools-go/cmd/wit-bindgen-go generate --world example --out gen ./wit
 
-// The above compiler directive is all that is needed to
-// re-generate the low-level Go code that interfaces to
-// wasm. It is re-generated every time the project is built.
+// The above compiler directive is all that is needed to re-generate
+// (into subdirectory "gen/") the low-level Go code that interfaces 
+// to wasm. It is re-generated every time the project is built.
 
 package main
 
 import (
 	"fmt"
-        S "strings"
         "io"
+        S "strings"
 	"net/http"
 	"log/slog" 
 	"encoding/json"
@@ -19,40 +19,38 @@ import (
 	// https://github.com/bytecodealliance/go-modules
 	baCM "go.bytecodealliance.org/cm"
 	
-	// WasmCloud uses obnoxious vanity URLs.
-	// "go.wasmcloud.dev/component/" is used in go.mod and at
-	// pkg.go.dev, but note that the corresponding source code 
-	// is found at https://github.com/wasmCloud/component-sdk-go/
+	// WasmCloud uses vanity URLs grrr. 
+	// "go.wasmcloud.dev/component/" is used in go.mod and 
+	// at pkg.go.dev, but the corresponding source code is
+	// found at https://github.com/wasmCloud/component-sdk-go/
 	wcLog   "go.wasmcloud.dev/component/log/wasilog"
 	wcHttp  "go.wasmcloud.dev/component/net/wasihttp"
 	wcEnvmt "go.wasmcloud.dev/component/gen/wasi/cli/environment"
-//	wcFSpre "go.wasmcloud.dev/component/gen/wasi/filesystem/preopens"
-//	wcFStps "go.wasmcloud.dev/component/gen/wasi/filesystem/types"
+	wcFStps "go.wasmcloud.dev/component/gen/wasi/filesystem/types"
+	wcFSpre "go.wasmcloud.dev/component/gen/wasi/filesystem/preopens"
 	
-	// These other wasmCloud imports are described at
+	// These wasmCloud keyvalue imports are described at
 	// https://wasmcloud.com/docs/tour/add-features?lang=tinygo
+	// BUT they do not exist yet (2024.12) at
+	// https://github.com/wasmCloud/component-sdk-go/tree/main/gen/wasi 
 //	wcAtomics "github.com/wasmcloud/wasmcloud/examples/golang/components/http-hello-world/gen/wasi/keyvalue/atomics"
+//	wcAtomics "go.wasmcloud.dev/component/gen/wasi/keyvalue/atomics"
 //	wcStore "github.com/wasmcloud/wasmcloud/examples/golang/components/http-hello-world/gen/wasi/keyvalue/store"
+//	wcStore "go.wasmcloud.dev/component/gen/wasi/keyvalue/store"
 )
 
-/* wasi:filesystem
-type DescriptorType uint8
+/* These values are confirmed in code below.
+wasi:filesystem: type DescriptorType uint8
 const (
-        DescriptorTypeUnknown DescriptorType = iota
+        DescriptorTypeUnknown DescriptorType = iota // 0 
         DescriptorTypeBlockDevice
         DescriptorTypeCharacterDevice
-        DescriptorTypeDirectory
+        DescriptorTypeDirectory // 3
         DescriptorTypeFIFO
-        DescriptorTypeSymbolicLink
-        DescriptorTypeRegularFile
+        DescriptorTypeSymbolicLink // 5
+        DescriptorTypeRegularFile // 6
         DescriptorTypeSocket
 ) */
-
-/*
-interface preopens {
-  use types.{descriptor};
-  get-directories: func() -> list<tuple<descriptor, string>>;
-} */
 
 var logger *slog.Logger
 var hdr = "<!doctype html> \n  <html> \n    <body> \n"
@@ -61,12 +59,12 @@ var addressee string
 var execEnvmt ExecutionEnvironment
 
 type ExecutionEnvironment struct {
-     Argmts baCM.List[string]
-     Envars baCM.List[[2]string]
+     Argmts []string    // baCM.List[string]
+     Envars [][2]string // baCM.List[[2]string]
      CWD string
 }
      
-// PartsOfRequest contains request info, sorted into fields. 
+// PartsOfRequest contains request info, parsed into fields. 
 // It is sent back as a response JSON from the server.
 type PartsOfRequest struct {
         Method      string `json:"method"`
@@ -77,34 +75,45 @@ type PartsOfRequest struct {
 
 // init handles all setup; main does zilch. 
 func init() {
-     	// [ContextLogger] returns a [DefaultLogger] implementation 
-	// that has an additional "wasi-context" [slog.Attr] attached
-	// to it. DefaultLogger is the WASI default logger implementation 
-	// that adapts the wasi:logging interface to a slog.Handler.
-	logger = wcLog.ContextLogger("hdlr")
+	// DefaultLogger is the WASI default logger implementation,
+	// which adapts the wasi:logging interface to a slog.Handler.
+     	// [ContextLogger] returns a [DefaultLogger] implementation that
+	// has an additional "wasi-context" [slog.Attr] attached to it. 
+	logger = wcLog.DefaultLogger // wcLog.ContextLogger("hdlr") 
 
-	// Open the KV store
+	// Open the KV store (does not work yet (2024.12))
 	/*
 	kvStore := wcStore.Open("default")
-	logger.Info("==> OPEN KV STORE <==", "type", fmt.Sprintf("%T", kvStore))
+	// Find out what its runtime type is, so we can declare
+	// a package variable at the top of this file.
+	logger.Info(banner("OPEN KV STORE"), "type", fmt.Sprintf("%T", kvStore))
 	if err := kvStore.Err(); err != nil {
 	   logger.Error("Error: ", err.String())
 	   return
 	   }
-	   */
-	execEnvmt.Argmts = wcEnvmt.GetArguments()
-	execEnvmt.Envars = wcEnvmt.GetEnvironment()
-	logger.Info("==> ARGMTs <==", "all", 
+	*/ 
+	execEnvmt.Argmts = wcEnvmt.GetArguments().Slice()
+	execEnvmt.Envars = wcEnvmt.GetEnvironment().Slice()
+	logger.Info(banner("ARGMTs"), "all", 
 		fmt.Sprintf("%#v", execEnvmt.Argmts))
-	logger.Info("==> ENVARs <==", "all", 
+	logger.Info(banner("ENVARs"), "all", 
 		fmt.Sprintf("%#v", execEnvmt.Envars))
-	/*
-	logger.Info("==> FSYS <==", "all",
+	
+	logger.Info(banner("FSYS"), "all",
 		fmt.Sprintf("DIRR<%d> SYML<%d> FILE<%d>",
 		wcFStps.DescriptorTypeDirectory,
 		wcFStps.DescriptorTypeSymbolicLink,
 		wcFStps.DescriptorTypeRegularFile))
-	*/	
+		
+	// wasi:filesystem: interface preopens:
+	// use types.{descriptor};
+	// get-directories: func() -> list<tuple<descriptor, string>>;
+	// func GetDirectories() (
+	// 	result cm.List[cm.Tuple[Descriptor, string]]) {
+	var dirs []baCM.Tuple[wcFStps.Descriptor, string]
+	dirs = wcFSpre.GetDirectories().Slice()
+	logger.Info(banner("DIRS"), "all", fmt.Sprintf("%#v", dirs))
+		
 	wcHttp.HandleFunc(handler)
 }
 
@@ -114,17 +123,18 @@ func handler(w http.ResponseWriter, r *http.Request) {
      	 var e error
 	
 	// Get the PartsOfRequest 
-	var porp *PartsOfRequest
-	porp, e = newPartsOfHttpRequest(r)
+	var pParts *PartsOfRequest
+	pParts, e = newPartsOfHttpRequest(r)
 	if e != nil {
                 http.Error(w, e.Error(), http.StatusInternalServerError)
                 return
 	}
-	// println("GOT A REQUEST") // println does nothing! :-/
-	// Some of these log fields might need to be output in quotes
-	logger.Info("==> incmg HTTP REQ <==", // "host", r.Host,
+	// println does nothing! :-/ at least until we have stderr 
+	// println("GOT A REQUEST")
+	// So, instead: 
+	logger.Info(banner("incmg HTTP REQ"), // "host", r.Host,
 		"path", r.URL.Path, // "agent", r.Header.Get("User-Agent"))
-		"queryString", porp.QueryString, "body", porp.Body)
+		"queryString", pParts.QueryString, "body", pParts.Body)
 	
 	// Content-Type is important!
         // w.Header().Add("Content-Type", "application/json")
@@ -133,11 +143,11 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 	addressee = "wasm-ey world"
 	// FIXME 
-	if S.HasPrefix(porp.QueryString, "name=") {
-	   addressee = porp.QueryString[5:]
+	if S.HasPrefix(pParts.QueryString, "name=") {
+	   addressee = pParts.QueryString[5:]
 	   }
 	/*
-	kvStore := wcStore.Open("default")
+	kvStore := wcStore.Open("default") // should ref a package variable 
 	value := wcAtomics.Increment(*kvStore.OK(), addressee, 1)
 	if err := value.Err(); err != nil {
 	   logger.Error("Error: ", err.String())
@@ -154,7 +164,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	// Marshal the PartsOfRequest to JSON
         enc := json.NewEncoder(w)
 	enc.SetIndent("", "  ") // no prefix
-        e = enc.Encode(porp)
+        e = enc.Encode(pParts)
         if e != nil {
                 http.Error(w, e.Error(), http.StatusInternalServerError)
                 return
@@ -169,7 +179,11 @@ func wrt(w http.ResponseWriter, s string) {
                 logger.Error("handler: cannot write to " +
 			"http response body", "error", e)
 		}
-	}    
+	}
+
+func banner(s string) string {
+	return "==> " + s + " <=="
+}
 
 // main would have a body if we were (also?) running this as a CLI app.
 func main() {}

@@ -76,7 +76,17 @@ Every time you run `wash dev`, the `gen/` and `build/`
 subdirectories are wiped clean and repopulated.
 
 Modifying any other file may deeply break things.
-Be prepared to roll back your modifications. 
+Be prepared to roll back your modifications.
+
+If you modify your Go code and your changes are
+not visible in outputs and logs, try running the
+included shell file `MakrClean.sh`, and you might
+also need to run `wash app list` and `wash app
+undeploy *appname*`.
+
+If things get really wedged, you might have to run
+
+`killall wasm nats-server wasmcloud_host wadm wash`
 
 <br/> 
 
