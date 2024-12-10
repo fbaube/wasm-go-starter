@@ -1,6 +1,29 @@
 package example:http-server;
 
 world example {
-  include wasmcloud:component-go/imports@0.1.0;
-  export wasi:http/incoming-handler@0.2.0;
+	// These "include" and "export" directives provide the basics
+	// for running an HTTP server. "wasmcloud:component-go/imports"
+	// is an aggregation and its contents can be seen at
+	// https://github.com/wasmCloud/component-sdk-go/blob/main/wit/world.wit#L8
+	include wasmcloud:component-go/imports@0.1.0;
+	export wasi:http/incoming-handler@0.2.0;
+
+	// These remaining items below are provided to make it easy to 
+	// try things in ../main.go . Note that in a WIT file, it is OK 
+	// to import packages that remain unused, unlike imports in Go. 
+  
+	// These next two imports are described in
+	// https://wasmcloud.com/docs/tour/add-features?lang=tinygo
+	// They are provided here instead of the package for postgres.
+	// When a package for SQLite appears (some day?), it will go here.
+	import wasi:keyvalue/atomics@0.2.0-draft; 
+	import wasi:keyvalue/store@0.2.0-draft;
+	// This import is described at
+	// https://pkg.go.dev/go.wasmcloud.dev/component/gen/wasi/cli/environment
+	import wasi:cli/environment@0.2.0;
+	// These imports are likely to change 
+	import wasi:filesystem/preopens@0.2.0;
+	import wasi:filesystem/types@0.2.0;
 }
+
+  
