@@ -1,14 +1,19 @@
 # Gopher starter kit for CLI WebAssembly 
 
-Deploy an HTTP server provided by 
-a *WebAssembly component*, and then
-use Go (in the form of `tinygo`) to
-process its incoming HTTP requests.
+What you will find here:
 
-These instructions use some handy free tools from
-[wasmCloud](https://wasmcloud.com).
+1. Deploy an HTTP server provided by *WebAssembly component*
+   (to be exact, a *capability provider*) 
+2. Process its incoming HTTP requests using Go (to be exact, *`tinygo`*) 
+3. Add in functionality as you wish, using "batteries-included"
+   WebAssembly library dependencies 
+
+These instructions use some very handy free tools
+made available by [wasmCloud](https://wasmcloud.com)
+([*github*](https://github.com/wasmCloud)).
 The same things can be done using only tools from
-[Bytecode Alliance](https://bytecodealliance.org),
+[Bytecode Alliance](https://bytecodealliance.org)
+([*github*](https://github.com/bytecodealliance)), 
 but it would be more laborious. 
 
 ## Prerequisites
@@ -24,12 +29,14 @@ but it would be more laborious.
   - *cargo:* `cargo install wash-cli`
   - *macOS:*  `brew install wasmcloud/wasmcloud/wash`
 - [Install `wadm`](https://wasmcloud.com/docs/deployment/wadm/installing),
-  the wasmCloud Application Deployment Manager (from binary or via Docker)
-- [Install `wasm-tools`](https://crates.io/crates/wasm-tools)
+  the wasmCloud Application Deployment Manager <br/> (either as a binary
+  or via Docker)
+- [Install `wasm-tools`](https://crates.io/crates/wasm-tools),
+  the Bytecode Alliance toolset 
   - *cargo:* `cargo install --locked wasm-tools`
   - *macOS:*  `brew install wasm-tools`
 - [Install the cargo `component`subcommand](https://crates.io/crates/cargo-component)
-  - *cargo:* `cargo install cargo-component`
+  - `cargo install cargo-component --locked`
 
 *Note that on macOS,* if at some point you encounter weird
 `rust`errors, and you installed `rust` from Homebrew, you
@@ -75,18 +82,23 @@ Modify `main.go` to see what you can make it do.
 Every time you run `wash dev`, the `gen/` and `build/`
 subdirectories are wiped clean and repopulated.
 
-Modifying any other file may deeply break things.
-Be prepared to roll back your modifications.
+Modifying any other file supplied in this repo may deeply
+break things. Be prepared to roll back your modifications.
 
-If you modify your Go code and your changes are
-not visible in outputs and logs, try running the
-included shell file `MakrClean.sh`, and you might
-also need to run `wash app list` and `wash app
-undeploy *appname*`.
+These instructions provide a simple deployment. Avoid
+using the `wash up` or `wash app` commands, which can
+put your WebAssembly system in a complex state. 
 
-If things get really wedged, you might have to run
+## Troubleshooting
 
-`killall wasm nats-server wasmcloud_host wadm wash`
+If you modify your Go code and your changes are not
+visible in outputs and logs, try running the included
+shell files `Make.sh` and perhaps also `MakeClean.sh`
+before retrying. Note that it tries to kill a number
+of WebAssembly-related processes that might have been
+started and left running by certain WebAssembly CLI
+commands, as mentioned at the end of in the previous
+section. 
 
 <br/> 
 
