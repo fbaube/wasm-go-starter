@@ -4,7 +4,8 @@ go 1.23.4
 
 require (
 	github.com/bytecodealliance/wasm-tools-go v0.3.0
-	go.bytecodealliance.org v0.4.1
+	go.bytecodealliance.org v0.5.0
+	go.bytecodealliance.org/cm v0.1.0
 	go.wasmcloud.dev/component v0.0.5
 	go.wasmcloud.dev/wadge v0.7.0
 )
@@ -14,7 +15,7 @@ require (
 	github.com/docker/libtrust v0.0.0-20160708172513-aabc10ec26b7 // indirect
 	github.com/klauspost/compress v1.17.11 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
-	github.com/regclient/regclient v0.7.2 // indirect
+	github.com/regclient/regclient v0.8.0 // indirect
 	github.com/samber/lo v1.47.0 // indirect
 	github.com/samber/slog-common v0.17.1 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect

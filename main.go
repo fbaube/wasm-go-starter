@@ -91,7 +91,7 @@ func init() {
 	   logger.Error("Error: ", err.String())
 	   return
 	   }
-	*/ 
+	*/
 	execEnvmt.Argmts = wcEnvmt.GetArguments().Slice()
 	execEnvmt.Envars = wcEnvmt.GetEnvironment().Slice()
 	logger.Info(banner("ARGMTs"), "all", 
